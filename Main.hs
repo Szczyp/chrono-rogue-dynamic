@@ -1,6 +1,6 @@
 module Main where
 
-import Components
+import Components hiding (hero)
 import Systems
 import Types
 

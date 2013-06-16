@@ -27,10 +27,10 @@ drawLevel level = unlines . map makeRow $ [1 .. 10]
         lay = toInt . layerOr (Layer 0)
 
 moveHeroes :: Direction -> Level -> Level
-moveHeroes direction = map $ mapCmp isHero $ walk direction
+moveHeroes direction = map $ mapCmp hasHero $ walk direction
 
 walk :: Direction -> Position -> Position
-walk Stay      pos            = pos
+walk Stay      pos               = pos
 walk Up        (Position (x, y)) = Position (x, y - 1)
 walk UpRight   (Position (x, y)) = Position (x + 1, y - 1)
 walk Right     (Position (x, y)) = Position (x + 1, y)

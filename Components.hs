@@ -42,9 +42,7 @@ toChar (Sigil c) = c
 
 
 data Hero = Hero deriving (Show, Typeable)
-
-isHero :: Entity -> Bool
-isHero = isJust . (getCmp :: Entity -> Maybe Hero)
+makeComponent ''Hero
 
 
 newtype Layer = Layer Int deriving (Show, Typeable)
