@@ -16,8 +16,7 @@ drawLevel :: Level -> String
 drawLevel level = unlines $ map makeRow [1 .. 10] ++ info level
   where makeRow y = map (sigilOrDot y) [1 .. 10]
         sigilOrDot y x = fst . fromMaybe floor . lookup (x, y) $ coordMap
-        coordMap = fromList . sortByLayer . mapMaybe renderable $ level
-        sortByLayer = sortBy $ \(_, (_, l)) (_, (_, l')) -> compare l l'
+        coordMap = fromList . sortBy (compare `on` snd . snd) . mapMaybe renderable $ level
         floor = ('.', 0)
         renderable entity = do
             p <- pos entity
