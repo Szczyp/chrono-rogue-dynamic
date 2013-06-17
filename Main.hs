@@ -9,7 +9,7 @@ import Prelude hiding (Left, Right)
 import Control.Monad
 import Data.Dynamic
 import Data.List
-
+import System.IO
 
 entity :: Entity
 entity = []
@@ -22,6 +22,7 @@ hero :: Entity
 hero = Position (2, 2) <+>
        Sigil '@'       <+>
        Hero            <+>
+       Collision            <+>
        Layer 1         <+> entity
 
 monster :: Entity
@@ -38,6 +39,7 @@ walls = do
     y <- [1 .. 10]
     guard . not . null . intersect [1, 10] $ [x, y]
     return $ Position (x, y) <+>
+             Collision <+>
              Sigil '#'       <+> entity
 
 defaultLevel :: Level
@@ -47,8 +49,9 @@ gameLoop :: Level -> IO ()
 gameLoop level = do
     putStr . drawLevel $ level
     direction <- input
-    gameLoop . moveHeroes direction $ level
+    gameLoop . processCollision level . moveHeroes direction $ level
 
 main :: IO ()
-main = gameLoop defaultLevel
+main = do hSetBuffering stdin NoBuffering
+          gameLoop defaultLevel
 

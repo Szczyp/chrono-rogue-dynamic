@@ -51,3 +51,9 @@ makeComponent ''Layer
 
 toInt :: Layer -> Int
 toInt (Layer i) = i
+
+data Collision = Collision deriving (Show, Typeable)
+
+makeComponent ''Collision
+
+

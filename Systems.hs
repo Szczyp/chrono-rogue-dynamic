@@ -9,6 +9,8 @@ import Prelude hiding (Left, Right, floor, lookup)
 import Data.List hiding (lookup, filter)
 import Data.Map hiding (map, null, filter, mapMaybe)
 import Data.Maybe
+import qualified Data.Set as S
+import Control.Monad
 
 
 drawLevel :: Level -> String
@@ -25,6 +27,14 @@ drawLevel level = unlines . map makeRow $ [1 .. 10]
         pos = convert position toCoord
         sig = convert sigil toChar
         lay = toInt . layerOr (Layer 0)
+
+processCollision :: Level -> Level -> Level
+processCollision old new = if isUnique $ mapMaybe collidable new then new else old
+  where collidable entity = do
+          guard $ hasCollision entity
+          pos entity 
+        pos = convert position toCoord
+        isUnique l = length l == S.size (S.fromList l)
 
 moveHeroes :: Direction -> Level -> Level
 moveHeroes direction = map $ mapCmp hasHero $ walk direction
