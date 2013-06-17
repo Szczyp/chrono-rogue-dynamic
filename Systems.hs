@@ -6,15 +6,13 @@ import Utils
 
 import Prelude hiding (Left, Right, floor, lookup)
 
-import Data.List hiding (lookup, filter)
-import Data.Map hiding (map, null, filter, mapMaybe)
+import Data.List hiding (lookup, filter, foldl)
+import Data.Map hiding (map, null, filter, mapMaybe, foldl)
 import Data.Maybe
-import qualified Data.Set as S
-import Control.Monad
 
 
 drawLevel :: Level -> String
-drawLevel level = unlines . map makeRow $ [1 .. 10]
+drawLevel level = unlines $ (map makeRow [1 .. 10]) ++ (info level)
   where makeRow y = map (sigilOrDot y) [1 .. 10]
         sigilOrDot y x = fst . fromMaybe floor . lookup (x, y) $ coordMap
         coordMap = fromList . sortByLayer . mapMaybe renderable $ level
@@ -27,14 +25,17 @@ drawLevel level = unlines . map makeRow $ [1 .. 10]
         pos = convert position toCoord
         sig = convert sigil toChar
         lay = toInt . layerOr (Layer 0)
+        info = concatMap (\(LevelInfo l) -> l) . map (levelInfoOr (LevelInfo []))
 
-processCollision :: Level -> Level -> Level
-processCollision old new = if isUnique $ mapMaybe collidable new then new else old
+processCollision old new = if null collisions then new else collide old 
   where collidable entity = do
-          guard $ hasCollision entity
-          pos entity 
+          (Collision f) <- collision entity
+          p <- pos entity
+          return (p,f)
         pos = convert position toCoord
-        isUnique l = length l == S.size (S.fromList l)
+        collisions = concatMap (map snd) . filter ((> 1) . length) . groupBy coord  . mapMaybe collidable $ new
+        coord (p1,_) (p2,_) = p1 == p2
+        collide = foldl (.) id collisions
 
 moveHeroes :: Direction -> Level -> Level
 moveHeroes direction = map $ mapCmp hasHero $ walk direction

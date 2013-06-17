@@ -39,11 +39,14 @@ walls = do
     y <- [1 .. 10]
     guard . not . null . intersect [1, 10] $ [x, y]
     return $ Position (x, y) <+>
-             Collision <+>
+             Collision (map $ mapAllCmp (\(LevelInfo xs) -> LevelInfo $ "ouch":xs))  <+>
              Sigil '#'       <+> entity
 
+info :: Entity
+info = LevelInfo [] <+> entity
+
 defaultLevel :: Level
-defaultLevel = [hero, monster, item] ++ walls
+defaultLevel = [hero, monster, item, info] ++ walls
 
 gameLoop :: Level -> IO ()
 gameLoop level = do
