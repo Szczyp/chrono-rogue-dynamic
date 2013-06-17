@@ -22,7 +22,7 @@ hero :: Entity
 hero = Position (2, 2) <+>
        Sigil '@'       <+>
        Hero            <+>
-       Collision            <+>
+       Collision id    <+>
        Layer 1         <+> entity
 
 monster :: Entity
@@ -38,9 +38,9 @@ walls = do
     x <- [1 .. 10]
     y <- [1 .. 10]
     guard . not . null . intersect [1, 10] $ [x, y]
-    return $ Position (x, y) <+>
-             Collision (map $ mapAllCmp (\(LevelInfo xs) -> LevelInfo $ "ouch":xs))  <+>
-             Sigil '#'       <+> entity
+    return $ Position (x, y)                                                           <+>
+             Collision (map $ mapAllCmp $ \(LevelInfo xs) -> LevelInfo ("ouch!" : xs)) <+>
+             Sigil '#'                                                                 <+> entity
 
 info :: Entity
 info = LevelInfo [] <+> entity
@@ -52,7 +52,8 @@ gameLoop :: Level -> IO ()
 gameLoop level = do
     putStr . drawLevel $ level
     direction <- input
-    gameLoop . processCollision level . moveHeroes direction $ level
+    let cleanLevel = clearLevelInfo level
+    gameLoop . processCollision cleanLevel . moveHeroes direction $ cleanLevel
 
 main :: IO ()
 main = do hSetBuffering stdin NoBuffering

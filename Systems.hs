@@ -6,13 +6,14 @@ import Utils
 
 import Prelude hiding (Left, Right, floor, lookup)
 
+import Data.Function
 import Data.List hiding (lookup, filter, foldl)
 import Data.Map hiding (map, null, filter, mapMaybe, foldl)
 import Data.Maybe
 
 
 drawLevel :: Level -> String
-drawLevel level = unlines $ (map makeRow [1 .. 10]) ++ (info level)
+drawLevel level = unlines $ map makeRow [1 .. 10] ++ info level
   where makeRow y = map (sigilOrDot y) [1 .. 10]
         sigilOrDot y x = fst . fromMaybe floor . lookup (x, y) $ coordMap
         coordMap = fromList . sortByLayer . mapMaybe renderable $ level
@@ -27,14 +28,16 @@ drawLevel level = unlines $ (map makeRow [1 .. 10]) ++ (info level)
         lay = toInt . layerOr (Layer 0)
         info = concatMap (\(LevelInfo l) -> l) . map (levelInfoOr (LevelInfo []))
 
-processCollision old new = if null collisions then new else collide old 
+
+processCollision :: Level -> Level -> Level
+processCollision old new = if null collisions then new else collide old
   where collidable entity = do
           (Collision f) <- collision entity
           p <- pos entity
           return (p,f)
         pos = convert position toCoord
-        collisions = concatMap (map snd) . filter ((> 1) . length) . groupBy coord  . mapMaybe collidable $ new
-        coord (p1,_) (p2,_) = p1 == p2
+        collisions = concatMap (map snd) . filter ((> 1) . length) . groupByPosition . mapMaybe collidable $ new
+        groupByPosition = groupBy ((==) `on` fst) . sortBy (compare `on` fst)
         collide = foldl (.) id collisions
 
 moveHeroes :: Direction -> Level -> Level
@@ -65,3 +68,6 @@ input = do
       'a' -> Left
       'q' -> UpLeft
       _   -> Stay
+
+clearLevelInfo :: Level -> Level
+clearLevelInfo = map $ mapAllCmp $ const (LevelInfo [])

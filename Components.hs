@@ -52,9 +52,11 @@ makeComponent ''Layer
 toInt :: Layer -> Int
 toInt (Layer i) = i
 
+
 data Collision = Collision (Level->Level) deriving Typeable
 
 makeComponent ''Collision
+
 
 newtype LevelInfo = LevelInfo [String] deriving Typeable
 
