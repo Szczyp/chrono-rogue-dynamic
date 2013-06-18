@@ -25,7 +25,7 @@ mapAllCmp :: Typeable c => (c -> c) -> Entity -> Entity
 mapAllCmp = mapCmp $ const True
 
 
-newtype Position = Position Coord deriving (Show, Typeable)
+newtype Position = Position Coord deriving (Eq, Ord, Show, Typeable)
 
 makeComponent ''Position
 
@@ -37,20 +37,14 @@ newtype Sigil = Sigil Char deriving (Show, Typeable)
 
 makeComponent ''Sigil
 
-toChar :: Sigil -> Char
-toChar (Sigil c) = c
-
 
 data Hero = Hero deriving (Show, Typeable)
 makeComponent ''Hero
 
 
-newtype Layer = Layer Int deriving (Show, Typeable)
+newtype Layer = Layer Int deriving (Eq, Ord, Show, Typeable)
 
 makeComponent ''Layer
-
-toInt :: Layer -> Int
-toInt (Layer i) = i
 
 
 data Collision = Collision (Level->Level) deriving Typeable
@@ -62,3 +56,9 @@ newtype LevelInfo = LevelInfo [String] deriving Typeable
 
 makeComponent ''LevelInfo
 
+
+class Render a where
+    render :: a -> Char
+
+instance Render Sigil where
+    render (Sigil c) = c

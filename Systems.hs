@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 module Systems where
 
 import Components
@@ -10,34 +11,29 @@ import Data.Function
 import Data.List hiding (lookup, filter, foldl)
 import Data.Map hiding (map, null, filter, mapMaybe, foldl)
 import Data.Maybe
+import Control.Applicative
 
 
 drawLevel :: Level -> String
 drawLevel level = unlines $ map makeRow [1 .. 10] ++ info level
-  where makeRow y = map (sigilOrDot y) [1 .. 10]
-        sigilOrDot y x = fst . fromMaybe floor . lookup (x, y) $ coordMap
+  where makeRow y = map (entityOrFloor y) [1 .. 10]
+        entityOrFloor y x = render . fst . fromMaybe floor . lookup (Position (x, y)) $ coordMap
         coordMap = fromList . sortBy (compare `on` snd . snd) . mapMaybe renderable $ level
-        floor = ('.', 0)
-        renderable entity = do
-            p <- pos entity
-            s <- sig entity
-            return (p, (s, lay entity))
-        pos = convert position toCoord
-        sig = convert sigil toChar
-        lay = toInt . layerOr (Layer 0)
+        floor = (Sigil '.', Layer 0)
+        renderable entity =
+            let triple = (,,layerOr (Layer 0) entity) <$> position entity <*> sigil entity
+                rearange (p, s, l) = (p, (s, l))
+            in rearange <$> triple
         info = concatMap (\(LevelInfo l) -> l) . map (levelInfoOr (LevelInfo []))
 
 
 processCollision :: Level -> Level -> Level
 processCollision old new = if null collisions then new else collide old
-  where collidable entity = do
-          (Collision f) <- collision entity
-          p <- pos entity
-          return (p,f)
-        pos = convert position toCoord
+  where collidable entity = (,) <$> position entity <*> convert collision toFunc entity
         collisions = concatMap (map snd) . filter ((> 1) . length) . groupByPosition . mapMaybe collidable $ new
         groupByPosition = groupBy ((==) `on` fst) . sortBy (compare `on` fst)
         collide = foldl (.) id collisions
+        toFunc (Collision f) = f
 
 moveHeroes :: Direction -> Level -> Level
 moveHeroes direction = map $ mapCmp hasHero $ walk direction
