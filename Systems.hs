@@ -2,14 +2,14 @@ module Systems where
 
 import Components
 import Types
+import Utils
 
-import Prelude hiding (Left, Right, floor, lookup, map)
+import Prelude hiding (Left, Right)
 
-import Data.Set
-
+import qualified Data.Set as S
 
 move :: Direction -> Level -> Level
-move d = map $ \e -> if hasHero e then mapC (walk d) e else e
+move d = S.map $ iff hasHero $ mapC (walk d)
 
 walk :: Direction -> Position -> Position
 walk Stay      pos            = pos
@@ -38,4 +38,4 @@ input = do
       _   -> Stay
 
 clearLevelInfo :: Level -> Level
-clearLevelInfo = map $ mapC $ const (LevelInfo [])
+clearLevelInfo = S.map $ mapC $ const (LevelInfo [])
