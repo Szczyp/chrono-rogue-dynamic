@@ -4,61 +4,29 @@ module Components where
 
 import TH
 import Types
-import Utils
 
 import Data.Dynamic
-import Data.Maybe
-import Data.Monoid
+
+class Typeable c => Component c where
+    add :: c -> Entity -> Entity
+    mapC :: (c -> c) -> Entity -> Entity
+    mapC f (Entity u cs) = Entity u $ map (\c -> maybe c (toDyn . f) (fromDynamic c)) cs
 
 
-getCmp :: Typeable c => Entity -> Maybe c
-getCmp = getFirst . mconcat . map (First . fromDynamic)
-
-getCmpOr :: Typeable c => c -> Entity -> c
-getCmpOr c = fromMaybe c . getCmp
-
-mapCmp :: Typeable c => (Entity -> Bool) -> (c -> c) -> Entity -> Entity
-mapCmp p f = iff p f'
-    where f' = map $ \c -> maybe c (toDyn . f) (fromDynamic c)
-
-mapAllCmp :: Typeable c => (c -> c) -> Entity -> Entity
-mapAllCmp = mapCmp $ const True
-
-
-newtype Position = Position Coord deriving (Eq, Ord, Show, Typeable)
-
-makeComponent ''Position
-
-toCoord :: Position -> Coord
-toCoord (Position c) = c
-
+data Position = Position Int Int deriving (Eq, Ord, Show, Typeable)
+register ''Position
 
 newtype Sigil = Sigil Char deriving (Show, Typeable)
-
-makeComponent ''Sigil
-
-
-data Hero = Hero deriving (Show, Typeable)
-makeComponent ''Hero
-
+register ''Sigil
 
 newtype Layer = Layer Int deriving (Eq, Ord, Show, Typeable)
+register ''Layer
 
-makeComponent ''Layer
+data Collision = Collision (Entity -> Entity -> (Entity, Entity)) deriving Typeable
+register ''Collision
 
-
-data Collision = Collision (Level->Level) deriving Typeable
-
-makeComponent ''Collision
-
+data Hero = Hero deriving Typeable
+register ''Hero
 
 newtype LevelInfo = LevelInfo [String] deriving Typeable
-
-makeComponent ''LevelInfo
-
-
-class Render a where
-    render :: a -> Char
-
-instance Render Sigil where
-    render (Sigil c) = c
+register ''LevelInfo

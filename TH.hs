@@ -1,13 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module TH where
-
-import Prelude hiding (id)
+module TH (register) where
 
 import Data.Char
 import Data.Dynamic
 import Data.Maybe
-
+import Data.Monoid
 import Language.Haskell.TH
 
 declareFunction :: Name -> ExpQ -> TypeQ -> [DecQ]
@@ -15,24 +13,52 @@ declareFunction name expression signature =
     [ funD name [clause [] (normalB expression) []]
     , sigD name signature ]
 
-makeComponent :: Name -> DecsQ
-makeComponent name = sequence . concat $
-    [ declareFunction component
-        [| $getCmp |]
-        [t| [Dynamic] -> Maybe $componentType |]
-    , declareFunction componentOr
-        [| $getCmpOr |]
-        [t| $componentType -> [Dynamic] -> $componentType |]
-    , declareFunction hasComponent
-        [| isJust . ($getCmp :: [Dynamic] -> Maybe $componentType) |]
-        [t| [Dynamic] -> Bool |]
-    ]
-    where component = mkName . decapitalize $ name
-          componentOr = mkName . (++ "Or") . decapitalize $ name
-          hasComponent = mkName . ("has" ++) . nameBase $ name
-          componentType = conT name
-          getCmp = globalName "getCmp"
-          getCmpOr = globalName "getCmpOr"
-          globalName = global . mkName
+componentInstance :: Name -> [DecQ]
+componentInstance name =
+    [ instanceD (cxt [])
+        (appT (conT . mkName $ "Component") (conT name))
+        [(funD (mkName "add") [clause [] (normalB
+            [| \c e -> $setComponents (toDyn c : ($components . $(removeCmp name) $ e)) e |]) []])]]
+
+entityType :: TypeQ
+entityType = conT . mkName $ "Entity"
+
+setComponents :: ExpQ
+setComponents = global . mkName $ "setComponents"
+
+components :: ExpQ
+components = global . mkName $ "components"
+
+getCmp :: ExpQ
+getCmp = [| getFirst . mconcat . map (First . fromDynamic) . $components |]
+
+getCmpOr :: ExpQ
+getCmpOr = [| \c -> fromMaybe c . $getCmp |]
+
+hasCmp :: Name -> ExpQ
+hasCmp name = [| isJust . ($getCmp :: $entityType -> Maybe $(conT name)) |]
+
+removeCmp :: Name -> ExpQ
+removeCmp name = [| \e -> $setComponents ($filteredComponents e) e |]
+    where filteredComponents = [| \e -> filter (isNothing . $convert) ($components e) |]
+          convert = [| fromDynamic :: Dynamic -> Maybe $(conT name) |]
+
+register :: Name -> DecsQ
+register name = sequence . concat $
+    [ declareFunction (mkName . decapitalize $ name)
+        getCmp
+        [t| $entityType -> Maybe $(conT name) |]
+    , declareFunction (postfix "Or" name)
+        getCmpOr
+        [t| $(conT name) -> $entityType -> $(conT name) |]
+    , declareFunction (prefix "has" name)
+        (hasCmp name)
+        [t| $entityType -> Bool |]
+    , declareFunction (prefix "remove" name)
+        (removeCmp name)
+        [t| $entityType -> $entityType |]
+    , componentInstance name ]
+    where prefix p = mkName . (p ++) . nameBase
+          postfix p = mkName . (++ p) . decapitalize
           decapitalize = lower . nameBase
             where lower (c : cs) = toLower c : cs

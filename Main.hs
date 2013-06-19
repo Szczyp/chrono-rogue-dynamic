@@ -2,6 +2,8 @@ module Main where
 
 import Components hiding (hero)
 import Systems
+import Systems.Collide
+import Systems.Draw
 import Types
 
 import Prelude hiding (Left, Right)
@@ -9,53 +11,52 @@ import Prelude hiding (Left, Right)
 import Control.Monad
 import Data.Dynamic
 import Data.List
+import qualified Data.Set as S
 import System.IO
 
-entity :: Entity
-entity = []
-
-(<+>) :: (Typeable a) => a -> Entity -> Entity
+(<+>) :: (Typeable a) => a -> Components -> Components
 (<+>) x = (:) $ toDyn x
 infixr 5 <+>
 
-hero :: Entity
-hero = Position (2, 2) <+>
-       Sigil '@'       <+>
-       Hero            <+>
-       Collision id    <+>
-       Layer 1         <+> entity
+hero :: Components
+hero = Position 2 2                   <+>
+       Sigil '@'                      <+>
+       Collision (\c1 c2 -> (c1, c2)) <+>
+       Hero                           <+>
+       Layer 1                        <+> []
 
-monster :: Entity
-monster = Sigil 'k'       <+>
-          Position (7, 7) <+> entity
+monster :: Components
+monster = Sigil 'k'    <+>
+          Position 7 7 <+> []
 
-item :: Entity
-item = Sigil '$'       <+>
-       Position (9, 8) <+> entity
+item :: Components
+item = Sigil '$'    <+>
+       Position 9 8 <+> []
 
-walls :: Level
+walls :: [Components]
 walls = do
     x <- [1 .. 10]
     y <- [1 .. 10]
     guard . not . null . intersect [1, 10] $ [x, y]
-    return $ Position (x, y)                                                           <+>
-             Collision (map $ mapAllCmp $ \(LevelInfo xs) -> LevelInfo ("ouch!" : xs)) <+>
-             Sigil '#'                                                                 <+> entity
+    return $ Position x y                   <+>
+             Collision (\c1 c2 -> (c1, c2)) <+>
+             Sigil '#'                      <+> []
 
-info :: Entity
-info = LevelInfo [] <+> entity
+info :: Components
+info = LevelInfo [] <+> []
 
-defaultLevel :: Level
+defaultLevel :: [Components]
 defaultLevel = [hero, monster, item, info] ++ walls
 
 gameLoop :: Level -> IO ()
 gameLoop level = do
-    putStr . drawLevel $ level
+    putStr . draw $ level
     direction <- input
     let cleanLevel = clearLevelInfo level
-    gameLoop . processCollision cleanLevel . moveHeroes direction $ cleanLevel
+    gameLoop . collide cleanLevel . move direction $ cleanLevel
 
 main :: IO ()
-main = do hSetBuffering stdin NoBuffering
-          gameLoop defaultLevel
+main = do
+    hSetBuffering stdin NoBuffering
+    gameLoop . S.fromList =<< mapM identify defaultLevel
 
