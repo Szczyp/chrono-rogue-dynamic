@@ -9,7 +9,7 @@ import Prelude hiding (Left, Right)
 import qualified Data.Set as S
 
 move :: Direction -> Level -> Level
-move d = S.map $ iff hasHero $ mapC (walk d)
+move d = S.mapMonotonic $ iff hasHero $ mapC (walk d)
 
 walk :: Direction -> Position -> Position
 walk Stay      pos            = pos
@@ -38,4 +38,4 @@ input = do
       _   -> Stay
 
 clearLevelInfo :: Level -> Level
-clearLevelInfo = S.map $ mapC $ const (LevelInfo [])
+clearLevelInfo = S.mapMonotonic $ mapC $ const (LevelInfo [])
