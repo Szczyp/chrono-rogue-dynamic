@@ -6,6 +6,7 @@ import Utils
 
 import Prelude hiding (Left, Right)
 
+import Data.Maybe
 import qualified Data.Set as S
 
 move :: Direction -> Level -> Level
@@ -37,5 +38,11 @@ input = do
       'q' -> UpLeft
       _   -> Stay
 
-clearLevelInfo :: Level -> Level
-clearLevelInfo = S.mapMonotonic $ mapC $ const (LevelInfo [])
+printInfo :: Level -> String
+printInfo = concatMap show . mapMaybe info . S.toList
+
+instance Show Info where
+    show (Info i) = unlines i
+
+clearInfo :: Level -> Level
+clearInfo = S.mapMonotonic $ mapC $ const (Info [])

@@ -35,11 +35,13 @@ register ''Sigil
 newtype Layer = Layer Int deriving (Eq, Ord, Show, Typeable)
 register ''Layer
 
-data Collision = Collision (Entity -> Entity -> (Entity, Entity)) deriving Typeable
+data Collision = Collision (Entity -> Entity -> Entity)
+                           (Entity -> Entity -> Entity)
+                           deriving Typeable
 register ''Collision
 
 data Hero = Hero deriving Typeable
 register ''Hero
 
-newtype LevelInfo = LevelInfo [String] deriving Typeable
-register ''LevelInfo
+newtype Info = Info [String] deriving Typeable
+register ''Info
