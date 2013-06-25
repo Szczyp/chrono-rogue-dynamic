@@ -37,4 +37,5 @@ data Direction = Stay
                | DownLeft
                | Left
                | UpLeft
+               deriving Show
 

@@ -14,5 +14,4 @@ gameLoop level = do
     putStr . printInfo $ level
     direction <- input
     clearScreen
-    let cleanLevel = clearInfo level
-    move direction >>> collide cleanLevel >>> gameLoop $ cleanLevel
+    clearInfo >>> moveHero direction >>> collide >>> processMove >>> step >>> gameLoop $ level

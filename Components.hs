@@ -6,6 +6,7 @@ import TH
 import Types
 
 import Data.Dynamic
+import Data.Maybe
 
 class Typeable c => Component c where
     add :: c -> Entity -> Entity
@@ -29,6 +30,9 @@ class Typeable c => Component c where
 data Position = Position Int Int deriving (Eq, Ord, Show, Typeable)
 register ''Position
 
+newtype Move = Move Direction deriving (Show, Typeable)
+register ''Move
+
 newtype Sigil = Sigil Char deriving (Show, Typeable)
 register ''Sigil
 
@@ -40,8 +44,21 @@ data Collision = Collision (Entity -> Entity -> Entity)
                            deriving Typeable
 register ''Collision
 
+data Tile = Tile (Entity -> Entity -> Entity)
+                 (Entity -> Entity -> Entity)
+                 deriving Typeable
+register ''Tile
+
 data Hero = Hero deriving Typeable
 register ''Hero
 
 newtype Info = Info [String] deriving Typeable
 register ''Info
+
+addInfo :: String -> Entity -> Entity -> Entity
+addInfo msg _ e = fromMaybe (add (Info [msg]) e) $ do
+    (Info msgs) <- info e
+    return $ add (Info $ msg : msgs) e
+
+nothing :: Entity -> Entity -> Entity
+nothing = const id
