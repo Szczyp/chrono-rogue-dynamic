@@ -29,10 +29,9 @@ collide :: Level -> Level
 collide level = flip S.union level
               . S.fromList
               . map removeMove
-              . concatMap collide'
+              . concatMap interact
               $ collisions
-    where collide' cs = (map $ flip interact cs) cs
-          collisions = filter ((> 1) . length)
+    where collisions = filter ((> 1) . length)
                      . groupBy ((==) `on` cPosition)
                      . sortBy (compare `on` cPosition)
                      . map move'
@@ -63,10 +62,9 @@ instance Interact Stepable where
 step :: Level -> Level
 step level = flip S.union level
            . S.fromList
-           . concatMap step'
+           . concatMap interact
            $ collisions
-    where step' cs = (map $ flip interact cs) cs
-          collisions = filter ((> 1) . length)
+    where collisions = filter ((> 1) . length)
                      . groupBy ((==) `on` sPosition)
                      . sortBy (compare `on` sPosition)
                      . mapMaybe stepable

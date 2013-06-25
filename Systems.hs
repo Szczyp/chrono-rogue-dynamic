@@ -47,9 +47,15 @@ class Eq a => Interact a where
     srcF :: a -> Entity -> Entity -> Entity
     trgF :: a -> Entity -> Entity -> Entity
     entity :: a -> Entity
-    interact :: a -> [a] -> Entity
-    interact a = ($ entity a) . foldl (.) id . map combine . delete a
-        where combine a' = srcF a (entity a') . trgF a' (entity a')
+
+    interact :: [a] -> [Entity]
+    interact xs = map thread xs
+        where thread x = ($ entity x)
+                       . foldl (.) id
+                       . map (combine x)
+                       . delete x
+                       $ xs
+              combine x a' = srcF x (entity a') . trgF a' (entity a')
 
 walk :: Direction -> Position -> Position
 walk Stay      pos            = pos
