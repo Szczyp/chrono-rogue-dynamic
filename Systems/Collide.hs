@@ -26,21 +26,21 @@ instance Interact Collidable where
     entity = cEntity
 
 collide :: Level -> Level
-collide level = flip S.union level
-              . S.fromList
-              . map removeMove
-              . concatMap interact
-              $ collisions
-    where collisions = filter ((> 1) . length)
+collide level = collidedLevel `S.union` level
+    where collidedLevel = S.fromList
+                        . map removeMove
+                        . concatMap interact
+                        $ collisions
+          collisions = filter ((> 1) . length)
                      . groupBy ((==) `on` cPosition)
                      . sortBy (compare `on` cPosition)
-                     . map move'
-                     . collidables
+                     . map moveC
+                     . mapMaybe collidable
+                     . S.toList
                      $ level
-          move' c = fromMaybe c $ do
+          moveC c = fromMaybe c $ do
             (Move d) <- cMove c
             return $ c {cPosition = walk d . cPosition $ c}
-          collidables = mapMaybe collidable . S.toList
           collidable e = Collidable e
                          <$> position e
                          <*> collision e
@@ -60,11 +60,11 @@ instance Interact Stepable where
     entity = sEntity
 
 step :: Level -> Level
-step level = flip S.union level
-           . S.fromList
-           . concatMap interact
-           $ collisions
-    where collisions = filter ((> 1) . length)
+step level = collidedLevel `S.union` level
+    where collidedLevel = S.fromList
+                        . concatMap interact
+                        $ collisions
+          collisions = filter ((> 1) . length)
                      . groupBy ((==) `on` sPosition)
                      . sortBy (compare `on` sPosition)
                      . mapMaybe stepable

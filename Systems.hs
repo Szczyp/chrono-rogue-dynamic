@@ -55,7 +55,7 @@ class Eq a => Interact a where
                        . map (combine x)
                        . delete x
                        $ xs
-              combine x a' = srcF x (entity a') . trgF a' (entity a')
+              combine x x' = srcF x (entity x') . trgF x' (entity x')
 
 walk :: Direction -> Position -> Position
 walk Stay      pos            = pos
