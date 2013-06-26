@@ -8,13 +8,13 @@ import Prelude hiding (Left, Right)
 
 import Data.List
 import Data.Maybe
-import qualified Data.Set as S
+import Data.Set (mapMonotonic, toList)
 
 moveHero :: Direction -> Level -> Level
-moveHero = S.mapMonotonic . iff hasHero . add . Move
+moveHero = mapMonotonic . iff hasHero . add . Move
 
 processMove :: Level -> Level
-processMove = S.mapMonotonic move'
+processMove = mapMonotonic move'
   where move' e = fromMaybe e $ do
           (Move d) <- move e
           return $ removeMove . mapC (walk d) $ e
@@ -35,13 +35,13 @@ input = do
       _   -> Stay
 
 printInfo :: Level -> String
-printInfo = concatMap show . reverse . mapMaybe info . S.toList
+printInfo = concatMap show . reverse . mapMaybe info . toList
 
 instance Show Info where
     show (Info i) = unlines i
 
 clearInfo :: Level -> Level
-clearInfo = S.mapMonotonic removeInfo
+clearInfo = mapMonotonic removeInfo
 
 class Eq a => Interact a where
     srcF :: a -> Entity -> Entity -> Entity

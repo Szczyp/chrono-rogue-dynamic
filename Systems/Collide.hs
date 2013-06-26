@@ -8,9 +8,9 @@ import Prelude hiding (interact)
 
 import Control.Applicative
 import Data.Function
-import Data.List
+import Data.List (groupBy, sortBy)
 import Data.Maybe
-import qualified Data.Set as S
+import Data.Set (fromList, toList, union)
 
 data Collidable = Collidable { cEntity    :: Entity
                              , cPosition  :: Position
@@ -26,8 +26,8 @@ instance Interact Collidable where
     entity = cEntity
 
 collide :: Level -> Level
-collide level = collidedLevel `S.union` level
-    where collidedLevel = S.fromList
+collide level = collidedLevel `union` level
+    where collidedLevel = fromList
                         . map removeMove
                         . concatMap interact
                         $ collisions
@@ -36,7 +36,7 @@ collide level = collidedLevel `S.union` level
                      . sortBy (compare `on` cPosition)
                      . map moveC
                      . mapMaybe collidable
-                     . S.toList
+                     . toList
                      $ level
           moveC c = fromMaybe c $ do
             (Move d) <- cMove c
@@ -60,15 +60,15 @@ instance Interact Stepable where
     entity = sEntity
 
 step :: Level -> Level
-step level = collidedLevel `S.union` level
-    where collidedLevel = S.fromList
+step level = collidedLevel `union` level
+    where collidedLevel = fromList
                         . concatMap interact
                         $ collisions
           collisions = filter ((> 1) . length)
                      . groupBy ((==) `on` sPosition)
                      . sortBy (compare `on` sPosition)
                      . mapMaybe stepable
-                     . S.toList
+                     . toList
                      $ level
           stepable e = Stepable e
                        <$> position e
