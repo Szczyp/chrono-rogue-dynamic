@@ -1,4 +1,4 @@
-module Systems.Collide where
+module Systems.Collide (collide, step) where
 
 import Components
 import Systems
