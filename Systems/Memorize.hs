@@ -18,7 +18,6 @@ memorize level = memorizedLevel `union` level
                          . filter (inSight s . fst)
                          $ toMemorize
           toMemorize = mapMaybe memorizable . toList $ level
-          withMemories = mapMaybe (getMemories >> sighted) . toList $ level
-          memorizable e = do
-            _ <- getMemorizable e
-            (,) <$> getPosition e <*> pure e
+          withMemories = mapMaybe canMemorize . toList $ level
+          memorizable e = getMemorizable e >> (,) <$> getPosition e <*> pure e
+          canMemorize e = getMemories e >> sighted e
