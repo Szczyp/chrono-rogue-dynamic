@@ -12,18 +12,18 @@ import Data.List (groupBy, sortBy)
 import Data.Maybe
 import Data.Set (fromList, toList, union)
 
-data Collidable = Collidable { cEntity    :: Entity
-                             , cPosition  :: Position
-                             , cCollision :: Collision
-                             , cMove      :: Maybe Move }
+data Collidable = Collidable { collidableEntity    :: Entity
+                             , collidablePosition  :: Position
+                             , collidableCollision :: Collision
+                             , collidableMove      :: Maybe Move }
 
 instance Eq Collidable where
-    (==) = (==) `on` cEntity
+    (==) = (==) `on` collidableEntity
 
 instance Interact Collidable where
-    srcF Collidable {cCollision = (Collision s _)} = s
-    trgF Collidable {cCollision = (Collision _ t)} = t
-    entity = cEntity
+    srcF Collidable {collidableCollision = (Collision s _)} = s
+    trgF Collidable {collidableCollision = (Collision _ t)} = t
+    entity = collidableEntity
 
 collide :: Level -> Level
 collide level = collidedLevel `union` level
@@ -32,32 +32,32 @@ collide level = collidedLevel `union` level
                         . concatMap interact
                         $ collisions
           collisions = filter ((> 1) . length)
-                     . groupBy ((==) `on` cPosition)
-                     . sortBy (compare `on` cPosition)
+                     . groupBy ((==) `on` collidablePosition)
+                     . sortBy (compare `on` collidablePosition)
                      . map moveC
                      . mapMaybe collidable
                      . toList
                      $ level
           moveC c = fromMaybe c $ do
-            (Move d) <- cMove c
-            return $ c {cPosition = walk d . cPosition $ c}
+            (Move d) <- collidableMove c
+            return $ c {collidablePosition = walk d . collidablePosition $ c}
           collidable e = Collidable e
-                         <$> position e
-                         <*> collision e
-                         <*> pure (move e)
+                         <$> getPosition e
+                         <*> getCollision e
+                         <*> pure (getMove e)
 
 
-data Stepable = Stepable { sEntity   :: Entity
-                         , sPosition :: Position
-                         , sTile     :: Tile }
+data Stepable = Stepable { stepableEntity   :: Entity
+                         , stepablePosition :: Position
+                         , stepableTile     :: Tile }
 
 instance Eq Stepable where
-    (==) = (==) `on` sEntity
+    (==) = (==) `on` stepableEntity
 
 instance Interact Stepable where
-    srcF Stepable {sTile = (Tile s _)} = s
-    trgF Stepable {sTile = (Tile _ t)} = t
-    entity = sEntity
+    srcF Stepable {stepableTile = (Tile s _)} = s
+    trgF Stepable {stepableTile = (Tile _ t)} = t
+    entity = stepableEntity
 
 step :: Level -> Level
 step level = collidedLevel `union` level
@@ -65,11 +65,11 @@ step level = collidedLevel `union` level
                         . concatMap interact
                         $ collisions
           collisions = filter ((> 1) . length)
-                     . groupBy ((==) `on` sPosition)
-                     . sortBy (compare `on` sPosition)
+                     . groupBy ((==) `on` stepablePosition)
+                     . sortBy (compare `on` stepablePosition)
                      . mapMaybe stepable
                      . toList
                      $ level
           stepable e = Stepable e
-                       <$> position e
-                       <*> tile e
+                       <$> getPosition e
+                       <*> getTile e

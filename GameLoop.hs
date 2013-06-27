@@ -3,15 +3,27 @@ module GameLoop (gameLoop) where
 import Systems
 import Systems.Collide
 import Systems.Draw
+import Systems.Memorize
 import Types
+import Utils
 
-import Control.Arrow
+import Data.UUID
 import System.Console.ANSI
 
-gameLoop :: Level -> IO ()
-gameLoop level = do
-    putStr . draw $ level
-    putStr . printInfo $ level
+processLevel :: UUID -> Direction -> Level -> Level
+processLevel eId direction = memorize
+                           . step
+                           . move
+                           . collide
+                           . withId eId (addMove direction)
+                           . clearInfo
+
+gameLoop :: UUID -> Level -> IO ()
+gameLoop eId level = do
+    printLevel
+    printInfo
     direction <- input
     clearScreen
-    clearInfo >>> moveHero direction >>> collide >>> processMove >>> step >>> gameLoop $ level
+    gameLoop eId . processLevel eId direction $ level
+  where printLevel = putStr . drawFor eId $ level
+        printInfo  = putStr . collectInfo $ level

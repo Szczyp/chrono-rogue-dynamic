@@ -2,21 +2,21 @@ module Systems where
 
 import Components
 import Types
-import Utils
 
 import Prelude hiding (Left, Right)
 
-import Data.List
+import Control.Applicative
+import Data.List (delete)
 import Data.Maybe
-import Data.Set (mapMonotonic, toList)
+import Data.Set (insert, mapMonotonic, toList)
 
-moveHero :: Direction -> Level -> Level
-moveHero = mapMonotonic . iff hasHero . add . Move
+addMove :: Direction -> Entity -> Level -> Level
+addMove d e = insert $ add (Move d) e
 
-processMove :: Level -> Level
-processMove = mapMonotonic move'
+move :: Level -> Level
+move = mapMonotonic move'
   where move' e = fromMaybe e $ do
-          (Move d) <- move e
+          (Move d) <- getMove e
           return $ removeMove . mapC (walk d) $ e
 
 input :: IO Direction
@@ -34,8 +34,8 @@ input = do
       'q' -> UpLeft
       _   -> Stay
 
-printInfo :: Level -> String
-printInfo = concatMap show . reverse . mapMaybe info . toList
+collectInfo :: Level -> String
+collectInfo = concatMap show . reverse . mapMaybe getInfo . toList
 
 instance Show Info where
     show (Info i) = unlines i
@@ -68,3 +68,15 @@ walk DownLeft  (Position x y) = Position (x - 1) (y + 1)
 walk Left      (Position x y) = Position (x - 1) y
 walk UpLeft    (Position x y) = Position (x - 1) (y - 1)
 
+data Sighted = Sighted { sightedEntity   :: Entity
+                       , sightedSight    :: Sight
+                       , sightedPosition :: Position }
+
+inSight :: Sighted -> Position -> Bool
+inSight Sighted { sightedSight    = (Sight s)
+                , sightedPosition = (Position x' y') }
+                (Position x y) =
+    x >= x' - s && x <= x' + s && y >= y' - s && y <= y' + s
+
+sighted :: Entity -> Maybe Sighted
+sighted e = Sighted e (getSightOr (Sight 0) e) <$> getPosition e

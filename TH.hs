@@ -45,10 +45,10 @@ removeCmp name = [| \e -> $setComponents ($filteredComponents e) e |]
 
 register :: Name -> DecsQ
 register name = sequence . concat $
-    [ declareFunction (mkName . decapitalize $ name)
+    [ declareFunction (prefix "get" name)
         getCmp
         [t| $entityType -> Maybe $(conT name) |]
-    , declareFunction (postfix "Or" name)
+    , declareFunction (prepostfix "get" "Or" name)
         getCmpOr
         [t| $(conT name) -> $entityType -> $(conT name) |]
     , declareFunction (prefix "has" name)
@@ -60,5 +60,6 @@ register name = sequence . concat $
     , componentInstance name ]
     where prefix p = mkName . (p ++) . nameBase
           postfix p = mkName . (++ p) . decapitalize
+          prepostfix p p' = mkName . (p ++) . (++ p') . nameBase
           decapitalize = lower . nameBase
             where lower (c : cs) = toLower c : cs

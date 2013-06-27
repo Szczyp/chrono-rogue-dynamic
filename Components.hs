@@ -7,6 +7,7 @@ import Types
 
 import Data.Dynamic
 import Data.Maybe
+import Data.Set (union)
 
 class Typeable c => Component c where
     add :: c -> Entity -> Entity
@@ -49,16 +50,25 @@ data Tile = Tile (Entity -> Entity -> Entity)
                  deriving Typeable
 register ''Tile
 
-data Hero = Hero deriving Typeable
-register ''Hero
-
 newtype Info = Info [String] deriving Typeable
 register ''Info
 
+newtype Sight = Sight Int deriving (Show, Typeable)
+register ''Sight
+
+newtype Memories = Memories Level deriving Typeable
+register ''Memories
+
+data Memorizable = Memorizable deriving Typeable
+register ''Memorizable
+
 addInfo :: String -> Entity -> Entity -> Entity
 addInfo msg _ e = fromMaybe (add (Info [msg]) e) $ do
-    (Info msgs) <- info e
+    (Info msgs) <- getInfo e
     return $ add (Info $ msg : msgs) e
 
 nothing :: Entity -> Entity -> Entity
 nothing = const id
+
+unionMemories :: Memories -> Memories -> Memories
+unionMemories (Memories s) (Memories s') = Memories (s `union` s')

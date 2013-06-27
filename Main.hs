@@ -1,23 +1,24 @@
 module Main where
 
-import Components hiding (hero)
+import Components
 import GameLoop
 import Types
 
-import Prelude hiding (Left)
-
+import Control.Applicative hiding (empty)
 import Control.Monad
-import Data.List
 import System.IO
-import qualified Data.Set as S
+import Data.Set (empty, fromList, insert)
+import Data.UUID (UUID)
+import Data.UUID.V4
 
-hero :: Components
-hero = Position 2 2                            </>
-       Sigil '@'                               </>
-       Collision (addInfo "poking...") nothing </>
-       Tile nothing nothing                    </>
-       Hero                                    <+>
-       Layer 1
+defaultHero :: Components
+defaultHero = Position 2 2                            </>
+              Sigil '@'                               </>
+              Collision (addInfo "poking...") nothing </>
+              Tile nothing nothing                    </>
+              Memories empty                          </>
+              Sight 2                                 <+>
+              Layer 1
 
 monster :: Components
 monster = Sigil 'k'                                                           </>
@@ -27,24 +28,49 @@ monster = Sigil 'k'                                                           </
 
 item :: Components
 item = Sigil '$'                                        </>
-       Position 9 8                                     <+>
-       Tile nothing (addInfo "you see plenty of gold!")
+       Position 9 8                                     </>
+       Tile nothing (addInfo "you see plenty of gold!") <+>
+       Memorizable
 
-walls :: [Components]
-walls = do
-    x <- [1 .. 10]
-    y <- [1 .. 10]
-    guard . not . null . intersect [1, 10] $ [x, y]
-    return $ Position x y                                                                                     </>
-             Collision nothing (addInfo "you touched a cold stone wall, your finger is chilled to the bone!") <+>
-             Sigil '#'
+floors :: Int -> Int -> [Components]
+floors horizontal vertical = do
+    x <- [1 .. horizontal]
+    y <- [1 .. vertical]
+    return $ Position x y </>
+             Sigil '.'    </>
+             Layer 0      <+>
+             Memorizable
+
+walls :: Int -> Int -> [Components]
+walls horizontal vertical = do
+    x <- [1 .. horizontal]
+    y <- [1 .. vertical]
+    guard $ x `elem` [1, horizontal] || y `elem` [1, vertical]
+    return $ Position x y                                                                     </>
+             Collision
+               nothing
+               (addInfo "you touched a cold stone wall, your finger is chilled to the bone!") </>
+             Sigil '#'                                                                        </>
+             Layer 1                                                                          <+>
+             Memorizable
+
+room :: Int -> Int -> [Components]
+room horizontal vertical = floors horizontal vertical ++ walls horizontal vertical
 
 defaultLevel :: [Components]
-defaultLevel = [hero, monster, item] ++ walls
+defaultLevel = [monster, item] ++ room 10 10
 
+identify :: Components -> IO Entity
+identify cs = Entity <$> nextRandom <*> pure cs
+
+spawnHero :: Level -> IO (UUID, Level)
+spawnHero level = do
+    hero <- identify defaultHero
+    return (uuid hero, insert hero level)
 
 main :: IO ()
 main = do
     hSetBuffering stdin NoBuffering
-    gameLoop . S.fromList =<< mapM identify defaultLevel
+    (heroId, level) <- spawnHero =<< fromList <$> mapM identify defaultLevel
+    gameLoop heroId level
 
