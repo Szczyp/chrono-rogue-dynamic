@@ -61,11 +61,13 @@ walls horizontal vertical = do
 room :: Int -> Int -> [Components]
 room horizontal vertical = floors horizontal vertical ++ walls horizontal vertical
 
-cShapedWall :: [Components]
-cShapedWall = [wall 5 5, wall 6 5, wall 7 5, wall 8 5, wall 5 4, wall 5 3, wall 6 3, wall 7 3, wall 8 3]
+cShapedWall :: Int -> Int -> [Components]
+cShapedWall x y = [ wall x (y + 2), wall (x + 1) (y + 2), wall (x + 2) (y + 2)
+                  , wall (x + 3) (y + 2), wall x (y + 1), wall x y, wall (x + 1) y
+                  , wall (x + 2) y, wall (x + 3) y ]
 
 defaultLevel :: [Components]
-defaultLevel = [monster, item] ++ room 10 10 ++ cShapedWall
+defaultLevel = [monster, item] ++ room 10 10 ++ cShapedWall 5 4
 
 identify :: Components -> IO Entity
 identify cs = Entity <$> nextRandom <*> pure cs

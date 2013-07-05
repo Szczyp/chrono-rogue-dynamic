@@ -7,6 +7,7 @@ import Types
 import Utils
 
 import Control.Applicative
+import Data.List.Split
 import Data.Maybe
 import Data.Set (fromList, member, toList)
 
@@ -60,7 +61,7 @@ inBounds :: Int -> Bounds -> [Int]
 inBounds n ((tx, ty), (bx, by)) = [bottom .. top]
     where bottom = if r >= bx then q + 1 else q
               where (q, r) = quotRem (by * (n * 2 - 1)) (bx * 2)
-          top    = if r > tx then q + 1 else q
+          top = if r > tx then q + 1 else q
               where (q, r) = quotRem (ty * (n * 2 + 1)) (tx * 2)
 
 scan :: (Position -> Bool) -> [Column]
@@ -69,7 +70,7 @@ scan isOpaque = scanl column initialColumn [1 ..]
           column c n = reverse $ do
             b @ (top, bottom) <- c
             let boundedYs = inBounds n b
-            boundedYs' <- cut opaque boundedYs
+            boundedYs' <- split (dropBlanks $ whenElt opaque) boundedYs
             let top' = if maximum boundedYs == maximum boundedYs'
                          then top
                          else topSlope boundedYs'

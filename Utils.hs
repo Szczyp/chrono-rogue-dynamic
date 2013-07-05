@@ -24,12 +24,5 @@ safeHead :: [a] -> Maybe a
 safeHead [] = Nothing
 safeHead (x : _) = Just x
 
-cut :: (a -> Bool) -> [a] -> [[a]]
-cut _ [] = []
-cut f xs = case break f xs of
-             (xs', [])       -> [xs']
-             ([], _ : xs')   -> cut f xs'
-             (xs', _ : xs'') -> xs' : cut f xs''
-
 shift :: Position -> Position -> Position
 shift (Position oX oY) (Position x' y') = Position (x' + oX) (y' + oY)
