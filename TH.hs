@@ -18,7 +18,7 @@ componentInstance name =
     [ instanceD (cxt [])
         (appT (conT . mkName $ "Component") (conT name))
         [(funD (mkName "add") [clause [] (normalB
-            [| \c e -> $setComponents (toDyn c : ($components . $(removeCmp name) $ e)) e |]) []])]]
+            [| \ c e -> $setComponents (toDyn c : ($components . $(removeCmp name) $ e)) e |]) []])]]
 
 entityType :: TypeQ
 entityType = conT . mkName $ "Entity"
@@ -33,14 +33,14 @@ getCmp :: ExpQ
 getCmp = [| getFirst . mconcat . map (First . fromDynamic) . $components |]
 
 getCmpOr :: ExpQ
-getCmpOr = [| \c -> fromMaybe c . $getCmp |]
+getCmpOr = [| \ c -> fromMaybe c . $getCmp |]
 
 hasCmp :: Name -> ExpQ
 hasCmp name = [| isJust . ($getCmp :: $entityType -> Maybe $(conT name)) |]
 
 removeCmp :: Name -> ExpQ
-removeCmp name = [| \e -> $setComponents ($filteredComponents e) e |]
-    where filteredComponents = [| \e -> filter (isNothing . $convert) ($components e) |]
+removeCmp name = [| \ e -> $setComponents ($filteredComponents e) e |]
+    where filteredComponents = [| \ e -> filter (isNothing . $convert) ($components e) |]
           convert = [| fromDynamic :: Dynamic -> Maybe $(conT name) |]
 
 register :: Name -> DecsQ

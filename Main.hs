@@ -17,7 +17,7 @@ defaultHero = Position 2 2                            </>
               Collision (addInfo "poking...") nothing </>
               Tile nothing nothing                    </>
               Memories empty                          </>
-              Sight 2                                 <+>
+              Sight 3                                 <+>
               Layer 1
 
 monster :: Components
@@ -41,24 +41,31 @@ floors horizontal vertical = do
              Layer 0      <+>
              Memorizable
 
+wall :: Int -> Int -> Components
+wall x y = Position x y                                                                    </>
+           Collision
+             nothing
+            (addInfo "you touched a cold stone wall, your finger is chilled to the bone!") </>
+           Sigil '#'                                                                       </>
+           Opaque                                                                          </>
+           Layer 1                                                                         <+>
+           Memorizable
+
 walls :: Int -> Int -> [Components]
 walls horizontal vertical = do
     x <- [1 .. horizontal]
     y <- [1 .. vertical]
     guard $ x `elem` [1, horizontal] || y `elem` [1, vertical]
-    return $ Position x y                                                                     </>
-             Collision
-               nothing
-               (addInfo "you touched a cold stone wall, your finger is chilled to the bone!") </>
-             Sigil '#'                                                                        </>
-             Layer 1                                                                          <+>
-             Memorizable
+    return $ wall x y
 
 room :: Int -> Int -> [Components]
 room horizontal vertical = floors horizontal vertical ++ walls horizontal vertical
 
+cShapedWall :: [Components]
+cShapedWall = [wall 5 5, wall 6 5, wall 7 5, wall 8 5, wall 5 4, wall 5 3, wall 6 3, wall 7 3, wall 8 3]
+
 defaultLevel :: [Components]
-defaultLevel = [monster, item] ++ room 10 10
+defaultLevel = [monster, item] ++ room 10 10 ++ cShapedWall
 
 identify :: Components -> IO Entity
 identify cs = Entity <$> nextRandom <*> pure cs

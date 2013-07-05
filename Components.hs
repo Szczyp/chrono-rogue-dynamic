@@ -13,7 +13,7 @@ class Typeable c => Component c where
     add :: c -> Entity -> Entity
 
     mapC :: (c -> c) -> Entity -> Entity
-    mapC f (Entity u cs) = Entity u $ map (\c -> maybe c (toDyn . f) (fromDynamic c)) cs
+    mapC f (Entity u cs) = Entity u $ map (\ c -> maybe c (toDyn . f) (fromDynamic c)) cs
 
     single :: c -> Components
     single c = [toDyn c]
@@ -34,7 +34,7 @@ register ''Position
 newtype Move = Move Direction deriving (Show, Typeable)
 register ''Move
 
-newtype Sigil = Sigil Char deriving (Show, Typeable)
+newtype Sigil = Sigil Char deriving (Eq, Ord, Show, Typeable)
 register ''Sigil
 
 newtype Layer = Layer Int deriving (Eq, Ord, Show, Typeable)
@@ -53,8 +53,11 @@ register ''Tile
 newtype Info = Info [String] deriving Typeable
 register ''Info
 
-newtype Sight = Sight Int deriving (Show, Typeable)
+newtype Sight = Sight Int deriving (Eq, Ord, Show, Typeable)
 register ''Sight
+
+data Opaque = Opaque deriving Typeable
+register ''Opaque
 
 newtype Memories = Memories Level deriving Typeable
 register ''Memories

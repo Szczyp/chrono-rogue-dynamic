@@ -67,16 +67,3 @@ walk Down      (Position x y) = Position x       (y + 1)
 walk DownLeft  (Position x y) = Position (x - 1) (y + 1)
 walk Left      (Position x y) = Position (x - 1) y
 walk UpLeft    (Position x y) = Position (x - 1) (y - 1)
-
-data Sighted = Sighted { sightedEntity   :: Entity
-                       , sightedSight    :: Sight
-                       , sightedPosition :: Position }
-
-inSight :: Sighted -> Position -> Bool
-inSight Sighted { sightedSight    = (Sight s)
-                , sightedPosition = (Position x' y') }
-                (Position x y) =
-    x >= x' - s && x <= x' + s && y >= y' - s && y <= y' + s
-
-sighted :: Entity -> Maybe Sighted
-sighted e = Sighted e (getSightOr (Sight 0) e) <$> getPosition e

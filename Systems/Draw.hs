@@ -1,7 +1,7 @@
 module Systems.Draw (draw, drawFor) where
 
 import Components
-import Systems
+import Systems.Sight
 import Types
 import Utils
 
@@ -12,7 +12,7 @@ import Control.Arrow
 import Data.Function
 import Data.List (sortBy)
 import Data.Maybe
-import Data.Map (Map, filter, fromList, lookup, union)
+import Data.Map (Map, fromList, lookup, union)
 import Data.Set (empty, toList)
 import Data.UUID
 
@@ -47,8 +47,9 @@ drawFor eId level =
     case findEntity eId level of
       Nothing -> "The all consuming void"
       Just e  -> drawPositions $ positionsInSight `union` memorizedPositions
-        where positionsInSight = filter inSight' . makePositionMap $ level
-              inSight' = maybe (const False) inSight (sighted e) . renderablePosition
+        where positionsInSight = makePositionMap $ case sighted e of
+                                                     Nothing -> empty
+                                                     Just s -> inSight s level
               memorizedPositions = makePositionMap memories
               Memories memories = getMemoriesOr (Memories empty) e
 
