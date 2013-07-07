@@ -3,6 +3,7 @@ module Utils where
 import Components (Position (Position))
 import Types
 
+import Data.Maybe
 import Data.Set
 import Data.UUID
 
@@ -13,16 +14,12 @@ convert :: Functor f => (a -> f b) -> (b -> c) -> a -> f c
 convert g f = fmap f . g
 
 findEntity :: UUID -> Level -> Maybe Entity
-findEntity eId = safeHead . toList . flip intersection (singleton . emptyEntity $ eId)
+findEntity eId = listToMaybe . toList . flip intersection (singleton . emptyEntity $ eId)
 
 withId :: UUID -> (Entity -> Level -> Level) -> Level -> Level
 withId eId f level = case findEntity eId level of
                              Nothing -> level
                              Just e  -> f e level
-
-safeHead :: [a] -> Maybe a
-safeHead [] = Nothing
-safeHead (x : _) = Just x
 
 shift :: Position -> Position -> Position
 shift (Position oX oY) (Position x' y') = Position (x' + oX) (y' + oY)

@@ -70,7 +70,7 @@ scan isOpaque = scanl column initialColumn [1 ..]
           column c n = reverse $ do
             b @ (top, bottom) <- c
             let boundedYs = inBounds n b
-            boundedYs' <- split (dropBlanks $ whenElt opaque) boundedYs
+            boundedYs' <- split (dropBlanks . dropDelims $ whenElt opaque) boundedYs
             let top' = if maximum boundedYs == maximum boundedYs'
                          then top
                          else topSlope boundedYs'
