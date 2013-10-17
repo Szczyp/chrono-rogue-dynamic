@@ -1,13 +1,13 @@
-{-# LANGUAGE TemplateHaskell, DeriveDataTypeable #-}
+{-# LANGUAGE NoImplicitPrelude, TemplateHaskell, DeriveDataTypeable #-}
 
 module Components where
 
 import TH
 import Types
 
+import ClassyPrelude
+
 import Data.Dynamic
-import Data.Maybe
-import Data.Set (union)
 
 class Typeable c => Component c where
     add :: c -> Entity -> Entity

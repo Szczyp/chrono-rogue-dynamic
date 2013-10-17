@@ -1,10 +1,12 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Utils where
 
 import Components (Position (Position))
 import Types
 
-import Data.Maybe
-import Data.Set
+import ClassyPrelude
+
 import Data.UUID
 
 iff :: (a -> Bool) -> (a -> a) -> a -> a
@@ -14,7 +16,7 @@ convert :: Functor f => (a -> f b) -> (b -> c) -> a -> f c
 convert g f = fmap f . g
 
 findEntity :: UUID -> Level -> Maybe Entity
-findEntity eId = listToMaybe . toList . flip intersection (singleton . emptyEntity $ eId)
+findEntity eId = listToMaybe . toList . flip intersection (singletonSet . emptyEntity $ eId)
 
 withId :: UUID -> (Entity -> Level -> Level) -> Level -> Level
 withId eId f level = case findEntity eId level of

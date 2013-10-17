@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Systems.Draw (draw, drawFor) where
 
 import Components
@@ -5,15 +7,8 @@ import Systems.Sight
 import Types
 import Utils
 
-import Prelude hiding (filter, lookup)
+import ClassyPrelude
 
-import Control.Applicative hiding (empty)
-import Control.Arrow
-import Data.Function
-import Data.List (sortBy)
-import Data.Maybe
-import Data.Map (Map, fromList, lookup, union)
-import Data.Set (empty, toList)
 import Data.UUID
 
 data Renderable = Renderable { renderableLayer    :: Layer
@@ -29,7 +24,7 @@ sigil :: Renderable -> Char
 sigil Renderable {renderableSigil = (Sigil c)} = c
 
 makePositionMap :: Level -> Map Position Renderable
-makePositionMap = fromList
+makePositionMap = mapFromList
                 . map (renderablePosition &&& id)
                 . sortBy (compare `on` renderableLayer)
                 . mapMaybe renderable
@@ -48,10 +43,10 @@ drawFor eId level =
       Nothing -> "The all consuming void"
       Just e  -> drawPositions $ positionsInSight `union` memorizedPositions
         where positionsInSight = makePositionMap $ case sighted e of
-                                                     Nothing -> empty
+                                                     Nothing -> mempty
                                                      Just s -> inSight s level
               memorizedPositions = makePositionMap memories
-              Memories memories = getMemoriesOr (Memories empty) e
+              Memories memories = getMemoriesOr (Memories mempty) e
 
 draw :: Level -> String
 draw = drawPositions . makePositionMap

@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module GameLoop (gameLoop) where
 
 import Systems
@@ -7,8 +9,11 @@ import Systems.Memorize
 import Types
 import Utils
 
+import ClassyPrelude
+
 import Data.UUID
 import System.Console.ANSI
+import System.IO (putStr)
 
 processLevel :: UUID -> Direction -> Level -> Level
 processLevel eId direction = memorize

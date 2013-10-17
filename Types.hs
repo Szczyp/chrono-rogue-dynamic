@@ -1,8 +1,10 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Types where
 
+import ClassyPrelude
+
 import Data.Dynamic
-import Data.Function
-import Data.Set
 import Data.UUID
 
 

@@ -1,16 +1,12 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Systems.Collide (collide, step) where
 
 import Components
 import Systems
 import Types
 
-import Prelude hiding (interact)
-
-import Control.Applicative
-import Data.Function
-import Data.List (groupBy, sortBy)
-import Data.Maybe
-import Data.Set (fromList, toList, union)
+import ClassyPrelude
 
 data Collidable = Collidable { collidableEntity    :: Entity
                              , collidablePosition  :: Position
@@ -27,7 +23,7 @@ instance Interact Collidable where
 
 collide :: Level -> Level
 collide level = collidedLevel `union` level
-    where collidedLevel = fromList
+    where collidedLevel = setFromList
                         . map removeMove
                         . concatMap interact
                         $ collisions
@@ -61,7 +57,7 @@ instance Interact Stepable where
 
 step :: Level -> Level
 step level = collidedLevel `union` level
-    where collidedLevel = fromList
+    where collidedLevel = setFromList
                         . concatMap interact
                         $ collisions
           collisions = filter ((> 1) . length)

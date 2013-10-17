@@ -1,22 +1,25 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Main where
 
 import Components
 import GameLoop
 import Types
 
-import Control.Applicative hiding (empty)
-import Control.Monad
-import System.IO
-import Data.Set (empty, fromList, insert)
+import ClassyPrelude hiding ((</>))
+
+import Control.Monad (guard)
+import Data.Set (insert)
 import Data.UUID (UUID)
-import Data.UUID.V4
+import Data.UUID.V4 (nextRandom)
+import System.IO (BufferMode(NoBuffering), hSetBuffering)
 
 defaultHero :: Components
 defaultHero = Position 2 2                            </>
               Sigil '@'                               </>
               Collision (addInfo "poking...") nothing </>
               Tile nothing nothing                    </>
-              Memories empty                          </>
+              Memories mempty                         </>
               Sight 3                                 <+>
               Layer 1
 
@@ -80,6 +83,6 @@ spawnHero level = do
 main :: IO ()
 main = do
     hSetBuffering stdin NoBuffering
-    (heroId, level) <- spawnHero =<< fromList <$> mapM identify defaultLevel
+    (heroId, level) <- spawnHero =<< setFromList <$> mapM identify defaultLevel
     gameLoop heroId level
 

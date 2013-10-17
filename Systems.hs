@@ -1,14 +1,15 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Systems where
 
 import Components
 import Types
 
-import Prelude hiding (Left, Right)
+import ClassyPrelude hiding (Right, Left, Down)
 
-import Control.Applicative
 import Data.List (delete)
-import Data.Maybe
-import Data.Set (insert, mapMonotonic, toList)
+import Data.Set (insert, mapMonotonic)
+import System.IO (getChar)
 
 addMove :: Direction -> Entity -> Level -> Level
 addMove d e = insert $ add (Move d) e
@@ -51,7 +52,7 @@ class Eq a => Interact a where
     interact :: [a] -> [Entity]
     interact xs = map thread xs
         where thread x = ($ entity x)
-                       . foldl (.) id
+                       . foldl' (.) id
                        . map (combine x)
                        . delete x
                        $ xs

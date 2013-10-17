@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NoImplicitPrelude, TupleSections #-}
 
 module Systems.Sight where
 
@@ -6,10 +6,11 @@ import Components (Position(..), Sight(..), getPosition, getSightOr, hasOpaque)
 import Types
 import Utils
 
-import Control.Applicative
+import ClassyPrelude
+
+import Data.List (scanl, maximum, minimum)
 import Data.List.Split
-import Data.Maybe
-import Data.Set (fromList, member, toList)
+
 
 data Sighted = Sighted { sightedEntity   :: Entity
                        , sightedSight    :: Sight
@@ -27,9 +28,10 @@ type Column = [Bounds]
 
 inSight :: Sighted -> Level -> Level
 inSight (Sighted _ (Sight s) origin @ (Position x y)) level = levelInSight
-    where levelInSight = fromList . map tileEntity $ tilesInSight
+    where levelInSight = setFromList . map tileEntity $ tilesInSight
           tilesInSight = filter ((`elem` concatMap visibleInOctet octets) . tilePosition) tilesInRange
-          opaquePositions = fromList
+          opaquePositions :: Set Position
+          opaquePositions = setFromList
                           . map tilePosition
                           . filter tileOpaque
                           $ tilesInRange
